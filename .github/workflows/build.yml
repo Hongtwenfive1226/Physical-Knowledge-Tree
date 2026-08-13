@@ -1,0 +1,30 @@
+name: Build Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Build and verify (0 warnings)
+        shell: bash
+        run: |
+          output=$(python build.py 2>&1)
+          echo "$output"
+          if ! echo "$output" | grep -q "无警告"; then
+            echo "::error::build.py 存在警告，请修复到 0 警告后再提交。"
+            exit 1
+          fi

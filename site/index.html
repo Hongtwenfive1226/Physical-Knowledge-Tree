@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中文物理知识树</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="js/vendor/katex/katex.min.css">
+</head>
+<body>
+
+  <!-- 顶部栏 -->
+  <div id="topbar">
+    <div class="brand">
+      <div class="title">中文物理知识树</div>
+      <div class="subtitle">PHYSICS KNOWLEDGE GRAPH</div>
+    </div>
+    <div id="search-wrap">
+      <input id="search-input" type="text" placeholder="搜索知识点（名称 / 别名 / 标签）…" autocomplete="off">
+      <div id="search-results"></div>
+    </div>
+    <div class="actions">
+      <button id="btn-global" class="btn active">3D 全局</button>
+      <button id="btn-labels" class="btn active">标签</button>
+      <button id="btn-tree" class="btn">学习树</button>
+      <button id="btn-challenge" class="btn">挑战模式</button>
+      <label class="ctl">字号<input id="font-slider" type="range" min="10" max="50" step="1" value="15"></label>
+      <label class="ctl hidden" id="spacing-ctl">间距<input id="spacing-slider" type="range" min="50" max="300" step="5" value="100"></label>
+      <button id="btn-reset" class="btn hidden">重置布局</button>
+      <button id="btn-legend" class="btn">领域图例</button>
+      <span id="stat"></span>
+    </div>
+  </div>
+
+  <!-- 图容器 -->
+  <div id="graph3d"></div>
+  <div id="graph2d" class="hidden"></div>
+
+  <!-- 2D 提示条 -->
+  <div id="hint2d" class="hidden"></div>
+
+  <!-- 领域图例 -->
+  <div id="cloud-legend" class="hidden"></div>
+
+  <!-- 树状学习图面板 -->
+  <div id="tree-panel" class="hidden">
+    <div id="tree-head">
+      <span class="th-title">树状学习图</span>
+      <div class="th-actions">
+        <button id="tree-save-btn" class="btn" title="保存到森林">保存</button>
+        <button id="tree-forest-btn" class="btn" title="载入已保存的学习树">森林</button>
+        <button id="tree-clear" class="btn" title="清空">清空</button>
+      </div>
+    </div>
+    <div id="tree-save-box" class="hidden">
+      <input id="tree-name-input" type="text" placeholder="输入名称…">
+      <button id="tree-save-confirm" class="btn">确认</button>
+      <button id="tree-save-cancel" class="btn">取消</button>
+    </div>
+    <div id="tree-forest" class="hidden"></div>
+    <div id="tree-list"></div>
+    <div id="tree-empty">双击进入节点开始构建学习树</div>
+  </div>
+  <div id="tree-prompt" class="hidden"></div>
+
+  <!-- 详情抽屉 -->
+  <div id="detail" class="closed">
+    <div id="detail-head">
+      <div id="detail-title"></div>
+      <div id="detail-sub"></div>
+      <button id="detail-close" title="关闭">✕</button>
+    </div>
+    <div id="detail-scroll"></div>
+  </div>
+
+  <!-- 挑战模式覆盖层 -->
+  <div id="challenge" class="hidden">
+    <div id="ch-start">
+      <div class="ch-panel">
+        <h2>挑战模式 · 搭建物理知识框架</h2>
+        <p class="ch-desc">从各领域的核心节点开始，每轮出现若干"子节点"（仅显示名称）。请把它们挂到正确的父节点上；挂对即可推进，全部挂完即完成。</p>
+        <div class="ch-row">
+          <label>每轮子节点数
+            <select id="ch-n">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="8">8</option>
+              <option value="10">10</option>
+            </select>
+          </label>
+        </div>
+        <div class="ch-row">
+          <label>判定难度</label>
+          <label><input type="radio" name="ch-diff" value="loose" checked> 宽松（任意关联）</label>
+          <label><input type="radio" name="ch-diff" value="strict"> 严格（仅强关联）</label>
+        </div>
+        <div class="ch-row">
+          <button id="ch-begin" class="btn">开始挑战</button>
+          <button id="ch-close" class="btn">返回</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ch-play" class="hidden">
+      <div id="ch-header">
+        <span class="ch-hd">⏱ <span id="ch-timer">0:00</span></span>
+        <span class="ch-hd">轮次 <span id="ch-round">0</span></span>
+        <span class="ch-hd">进度 <span id="ch-progress-num"></span></span>
+        <span id="ch-progress"><span id="ch-progress-fill"></span></span>
+        <button id="ch-exit" class="btn">退出</button>
+      </div>
+      <div id="ch-graph"></div>
+      <div id="ch-bottom">
+        <div id="ch-search-row">
+          <input id="ch-search" type="text" placeholder="搜索父节点（先选中子节点，再点此连接）…" autocomplete="off">
+          <div id="ch-search-res" class="hidden"></div>
+        </div>
+        <div id="ch-feedback"></div>
+        <div class="ch-panel-title">本轮子节点（点击或按数字键 1~9/0 选中 → 点击图上节点 / 搜索 / 拖拽连接）</div>
+        <div id="ch-cards"></div>
+        <button id="ch-next" class="btn hidden">下一轮 →</button>
+      </div>
+    </div>
+
+    <div id="ch-done" class="hidden">
+      <div class="ch-panel">
+        <h2>🎉 挑战完成！</h2>
+        <p>总用时：<b id="ch-done-time"></b></p>
+        <p>总轮次：<b id="ch-done-rounds"></b></p>
+        <p>总错误：<b id="ch-done-errors"></b></p>
+        <p>正确率：<b id="ch-done-acc"></b></p>
+        <div class="ch-row">
+          <button id="ch-restart" class="btn">再来一次</button>
+          <button id="ch-done-close" class="btn">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ch-detail" class="hidden">
+      <div id="ch-detail-panel">
+        <div id="ch-detail-head">
+          <span id="ch-detail-title"></span>
+          <span id="ch-detail-domain" class="badge-domain"></span>
+          <button id="ch-detail-close" title="关闭">✕</button>
+        </div>
+        <div id="ch-detail-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 加载遮罩 -->
+  <div id="loading">正在加载知识树…</div>
+
+  <!-- 第三方库（本地化，离线可用） -->
+  <script src="js/vendor/three.min.js"></script>
+  <script src="js/vendor/three-timer-polyfill.js"></script>
+  <script src="js/vendor/3d-force-graph.min.js"></script>
+  <script src="js/vendor/force-graph.min.js"></script>
+  <script src="js/vendor/marked.min.js"></script>
+  <script src="js/vendor/katex.min.js"></script>
+  <script src="js/vendor/auto-render.min.js"></script>
+
+  <!-- 图数据（由 build.py 生成） -->
+  <script src="data/graph.js"></script>
+
+  <!-- 应用代码 -->
+  <script src="js/common.js"></script>
+  <script src="js/detail.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/tree.js"></script>
+  <script src="js/challenge.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 日志与构建临时文件
+*.tmp
+
+# 说明：site/data/graph.js 由 build.py 生成，但保留在仓库中
+# （网站需要它才能离线直接运行，且 GitHub Pages 直接部署 site/）
